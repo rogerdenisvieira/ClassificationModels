@@ -3,11 +3,7 @@ library(rpart.plot)
 library(caret)
 
 # lendo o arquivo que contem o dataset
-df <- read.csv(file = "C:/Users/roger.vieira/Repositories/ClassificationModels/telco_churn.csv", sep = ",", header = TRUE, dec = ".")
-
-# convertendo a forma de pagamento em uma variável categórica
-df$PaymentMethod <- as.factor(df$PaymentMethod)
-df$gender <- as.factor(df$PaymentMethod)
+df <- read.csv(file = "/home/roger/Repositories/ClassificationModels//telco_churn.csv", sep = ",", header = TRUE, dec = ".")
 
 # separandos o dataset em treino e validação
 index <- createDataPartition(df$Churn, list=FALSE)
@@ -19,28 +15,32 @@ nrow(training)
 nrow(validation)
 
 # aplicando o modelo de árvore de decisão
-#decisionTreeModel <- rpart(
-#    training$Churn
-#    ~ training$MonthlyCharges
-#    + training$TotalCharges
-#    + training$PaymentMethod
-#    + training$tenure,
-#    data=training,
-#    method = "class"    
-#)
-
 decisionTreeModel <- rpart(
-    training$Churn
-    ~ training$PaymentMethod,
-    data=training,
-    method = "class"    
+   training$Churn
+   ~ training$MonthlyCharges
+   + training$TotalCharges
+   + training$tenure,
+   data=training,
+   method = "class"
 )
+  
+
+logisticRegressionModel <- glm(training$Churn
+    ~ training$MonthlyCharges
+    + training$TotalCharges
+    + training$PaymentMethod
+    + training$tenure, family=binomial(link='logit'),data=training
+    )
 
 # rodando a predição ao dataset de validação
-pred <- predict(decisionTreeModel, validation, type="class")
+decisionTreePrediction <- predict(decisionTreeModel, validation, type="class")
+
+logisticRegressionPrediction <- predict(logisticRegressionModel, validation)
 
 # exibindo a matriz de confusão
-confusionMatrix(validation$Churn, pred)
+confusionMatrix(validation$Churn, decisionTreePrediction)
+
+confusionMatrix(validation$Churn, logisticRegressionPrediction)
 
 # plotando a árvore de decisão
 rpart.plot(decisionTreeModel)
